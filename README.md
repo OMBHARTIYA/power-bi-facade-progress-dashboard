@@ -1,34 +1,39 @@
-# Power BI Facade Progress Dashboard
+# Power BI Progress Dashboard Case Study
 
-Power BI reporting project built to track facade and building progress data across construction projects using XANO API data, Power Query transformations, DAX measures, and reusable report templates.
+Portfolio-safe Power BI case study showing how API-fed operational data can be transformed into reusable progress dashboards with Power Query, DAX, and repeatable report logic.
 
 ## Project Summary
 
-This project demonstrates how operational construction data can be transformed into stakeholder-facing Power BI dashboards for project monitoring. The reports track unit-level progress, status movement, and project-level KPIs using data sourced from XANO and shaped through Power Query and DAX.
+This repository showcases my contribution to a reporting workflow used for construction-style progress tracking. The public version intentionally removes client-identifying details, branded visuals, and sensitive source data while preserving the technical approach, report structure, and transformation logic.
 
 ## What I Built
 
-- Power BI dashboards for multiple facade and construction projects
+- reusable Power BI dashboard structure for project progress reporting
 - Power Query logic for API-based `units` and `unit_status` ingestion
-- incremental refresh logic for status history datasets
-- current-status derivation from raw unit history
-- DAX measures and dynamic report titles
-- reusable parameterized report structure for multiple projects
+- incremental refresh pattern for status history datasets
+- current-status derivation from raw event history
+- DAX measures and dynamic project labeling
+- parameterized report setup for multi-project reuse
 - helper automation to update project parameter values
 
-## Business Use Case
+## Portfolio Framing
 
-The dashboards were designed to help project stakeholders monitor live construction progress, review current unit status, and track project-level KPI movement across facade projects.
+This public version is presented as a technical case study rather than a client delivery. It focuses on:
+
+- report architecture
+- transformation logic
+- refresh strategy
+- KPI design
+- reusable project parameterization
 
 ## Key Features
 
-- multi-project dashboard structure
-- reusable report templates
+- reusable dashboard template structure
 - API-driven data transformation using Power Query
 - incremental refresh with `RangeStart` and `RangeEnd`
-- status-history to current-status logic
+- status-history to current-status modeling
 - dynamic filtering and report labeling with DAX
-- parameter update automation for project switching
+- helper automation for project switching
 
 ## Technologies Used
 
@@ -46,10 +51,6 @@ The dashboards were designed to help project stakeholders monitor live construct
 README.md
 reports/
   final/
-    bridgend-college-b02-b01-progress-dashboard.pbix
-    bridgend-college-b02-progress-dashboard.pbix
-    quorum-b-progress-dashboard.pbix
-    upper-one-progress-dashboard.pbix
 queries/
   current-units-query.txt
   unit-status-incremental-refresh.txt
@@ -67,43 +68,22 @@ docs/
 
 ## Key Repository Files
 
-- `reports/final/bridgend-college-b02-b01-progress-dashboard.pbix` - combined Bridgend College dashboard
-- `reports/final/bridgend-college-b02-progress-dashboard.pbix` - Bridgend College B02 dashboard
-- `reports/final/quorum-b-progress-dashboard.pbix` - Quorum B dashboard
-- `reports/final/upper-one-progress-dashboard.pbix` - Upper One dashboard
 - `queries/current-units-query.txt` - current unit-state transformation logic
 - `queries/unit-status-incremental-refresh.txt` - incremental-refresh-ready status query
 - `dax/dynamic-project-title.txt` - dynamic project title logic
-- `scripts/update-project-parameter.py` - automation for updating project parameter values
+- `scripts/update-project-parameter.py` - helper automation for parameter updates
+- `docs/kpis.md` - KPI definitions and reporting focus
 
-## Dashboard Focus Areas
+## Screenshots And Data
 
-- current unit progress by project
-- status distribution and movement
-- construction type filtering
-- project-level KPI summaries
-- reusable report structure across multiple projects
+Client-branded dashboards, project names, and internal reporting visuals should not be shared publicly unless they have been recreated or explicitly approved for release.
 
-## Project Screenshots
+For a public portfolio version, the safest options are:
 
-### Upper One
-
-![Upper One Overview](screenshots/upper-one-overview.png)
-
-### Quorum B
-
-![Quorum B Overview](screenshots/quorum-b-overview.png)
-
-![Quorum B Issues Overview](screenshots/quorum-b-issues-overview.png)
-
-### Bridgend College
-
-![Bridgend College Overview](screenshots/bridgend-college-overview.png)
-
-![Bridgend College Current Issues](screenshots/bridgend-college-current-issues.png)
-
-![Bridgend College Solved Issues](screenshots/bridgend-college-solved-issues.png)
+- replace screenshots with recreated mock dashboards
+- blur or crop branded headers and project names
+- keep only sanitized diagrams showing report layout and KPI categories
 
 ## Outcome
 
-This project shows how to build reusable Power BI dashboards that turn API-driven construction data into stakeholder-friendly progress reporting with structured transformation logic, incremental refresh support, and practical reporting automation.
+This project demonstrates my ability to build reusable Power BI reporting solutions that convert API-driven operational data into stakeholder-friendly dashboards with structured transformation logic, incremental refresh support, and maintainable multi-project setup.

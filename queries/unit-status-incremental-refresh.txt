@@ -1,9 +1,9 @@
 let
-    // 1. Load data from Xano API
+    // 1. Load data from a generic REST API
     Source =
         Json.Document(
             Web.Contents(
-                "https://example.xano.io/api:REDACTED/units?projects_id=PROJECT_ID_REDACTED"
+                ApiBaseUrl & "/units?projects_id=" & ProjectID
             )
         ),
 

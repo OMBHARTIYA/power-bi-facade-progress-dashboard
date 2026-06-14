@@ -1,63 +1,39 @@
 # Report Inventory
 
-This file summarizes the Power BI report files currently included in the portfolio-ready repository and the page tabs found inside each `.pbix` package.
+This public repository uses neutral names for portfolio presentation.
 
-## 1. Bridgend College B02 and B01
+## 1. Project Alpha
 
-File:
+- progress overview dashboard
+- current status view
+- unit-level summary table
 
-- `reports/final/bridgend-college-b02-b01-progress-dashboard.pbix`
+## 2. Project Beta
 
-Notes:
+- progress overview dashboard
+- filtered construction-stage analysis
+- issue tracking page
 
-- this file is a valid Power BI report package
-- the package did not expose page definitions in the same newer format as the other reports, so page tabs could not be listed automatically
+## 3. Project Gamma
 
-## 2. Bridgend College B02
+- high-level KPI overview
+- issue analysis page
+- model-linked status review
 
-File:
+## Public Portfolio Notes
 
-- `reports/final/bridgend-college-b02-progress-dashboard.pbix`
+The original internal report names and client-facing screenshots are intentionally not listed here.
 
-Detected page tabs:
+For a public showcase, keep:
 
-- `Units Data 3D Model`
-- `Issues Data 3D model`
-- `Issues Details`
+- dashboard structure
+- KPI categories
+- reporting logic
+- reusable template design
 
-## 3. Quorum B
+Avoid sharing:
 
-File:
-
-- `reports/final/quorum-b-progress-dashboard.pbix`
-
-Detected page tabs:
-
-- `Block  Data 3D Model`
-- `Issues Data 3D model`
-- `Issues Details`
-
-## 4. Upper One
-
-File:
-
-- `reports/final/upper-one-progress-dashboard.pbix`
-
-Detected page tabs:
-
-- `Block  Data 3D Model`
-- `Issues Data 3D model`
-- `Issues Details`
-
-## Screenshot Note
-
-The repository now includes manually captured screenshots for:
-
-- Upper One overview
-- Quorum B overview
-- Quorum B issues overview
-- Bridgend College overview
-- Bridgend College current issues
-- Bridgend College solved issues
-
-These are stored under `screenshots/` and are suitable for portfolio presentation.
+- client or company names
+- branded exports
+- project-specific filenames
+- screenshots with real dates, project labels, or internal status snapshots
