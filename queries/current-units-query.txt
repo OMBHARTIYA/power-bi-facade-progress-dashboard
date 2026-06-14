@@ -1,7 +1,7 @@
 let
     // 1. Load data from Xano API
     Source = Json.Document(
-        Web.Contents("https://xvdw-waaf-yi3a.p7.xano.io/api:vGDwZm0o:Dynamo_jsz/units?projects_id=e64556a7-2048-463a-bf31-23ae1fa88ff9")
+        Web.Contents("https://example.xano.io/api:REDACTED/units?projects_id=PROJECT_ID_REDACTED")
     ),
 
     // 2. Convert JSON list into table
