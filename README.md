@@ -46,6 +46,10 @@ The dashboards were designed to help project stakeholders monitor live construct
 README.md
 reports/
   final/
+    bridgend-college-b02-b01-progress-dashboard.pbix
+    bridgend-college-b02-progress-dashboard.pbix
+    quorum-b-progress-dashboard.pbix
+    upper-one-progress-dashboard.pbix
 queries/
   current-units-query.txt
   unit-status-incremental-refresh.txt
@@ -63,8 +67,10 @@ docs/
 
 ## Key Repository Files
 
-- `reports/final/quorum-b-progress-dashboard.pbix` - final project dashboard
-- `reports/final/upper-one-progress-dashboard.pbix` - final project dashboard
+- `reports/final/bridgend-college-b02-b01-progress-dashboard.pbix` - combined Bridgend College dashboard
+- `reports/final/bridgend-college-b02-progress-dashboard.pbix` - Bridgend College B02 dashboard
+- `reports/final/quorum-b-progress-dashboard.pbix` - Quorum B dashboard
+- `reports/final/upper-one-progress-dashboard.pbix` - Upper One dashboard
 - `queries/current-units-query.txt` - current unit-state transformation logic
 - `queries/unit-status-incremental-refresh.txt` - incremental-refresh-ready status query
 - `dax/dynamic-project-title.txt` - dynamic project title logic
@@ -81,3 +87,7 @@ docs/
 ## Outcome
 
 This project shows how to build reusable Power BI dashboards that turn API-driven construction data into stakeholder-friendly progress reporting with structured transformation logic, incremental refresh support, and practical reporting automation.
+
+## Notes On Screenshots
+
+The repository includes representative screenshots for the dashboard style and reporting layout. True page screenshots for each `.pbix` file are best exported directly from Power BI Desktop, because `.pbix` files do not reliably include normal page preview images that can be extracted as portfolio screenshots.
