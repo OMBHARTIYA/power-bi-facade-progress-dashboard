@@ -1,0 +1,110 @@
+let
+    // 1. Load data from Xano API
+    Source =
+        Json.Document(
+            Web.Contents(
+                "https://xvdw-waaf-yi3a.p7.xano.io/api:vGDwZm0o:Dynamo_jsz/units?projects_id=e64556a7-2048-463a-bf31-23ae1fa88ff9"
+            )
+        ),
+
+    // 2. Convert JSON list to table
+    ConvertedToTable =
+        Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+
+    // 3. Expand unit-level fields
+    ExpandedUnits =
+        Table.ExpandRecordColumn(
+            ConvertedToTable,
+            "Column1",
+            {"id", "_unitsstatus"},
+            {"unit_id", "_unitsstatus"}
+        ),
+
+    // 4. Expand status list
+    ExpandedStatusList =
+        Table.ExpandListColumn(
+            ExpandedUnits,
+            "_unitsstatus"
+        ),
+
+    // 5. Expand status record
+    ExpandedStatusRecord =
+        Table.ExpandRecordColumn(
+            ExpandedStatusList,
+            "_unitsstatus",
+            {"id", "is_done", "date", "_unitstatuses"},
+            {"status_id", "is_done", "date", "_unitstatuses"}
+        ),
+
+    // 6. Expand status details
+    ExpandedStage =
+        Table.ExpandRecordColumn(
+            ExpandedStatusRecord,
+            "_unitstatuses",
+            {"name", "item_no"},
+            {"StatusName", "Item_No"}
+        ),
+
+    // 7. Convert Unix milliseconds → datetime
+    AddedDateTime =
+        Table.AddColumn(
+            ExpandedStage,
+            "DateTime",
+            each
+                if [date] <> null and Value.Is([date], type number)
+                then #datetime(1970, 1, 1, 0, 0, 0)
+                     + #duration(0, 0, 0, Number.From([date]) / 1000)
+                else null,
+            type datetime
+        ),
+
+    // =====================================================
+    // ✅ INCREMENTAL REFRESH FILTER (DO NOT MOVE THIS STEP)
+    // =====================================================
+    FilteredForIncremental =
+        Table.SelectRows(AddedDateTime, each [DateTime] >= RangeStart and [DateTime] < RangeEnd),
+
+    // 8. Keep only completed statuses
+    FilterCompleted =
+        Table.SelectRows(
+            FilteredForIncremental,
+            each [is_done] = true
+        ),
+
+    // 9. Clean column types
+    CleanTypes =
+        Table.TransformColumnTypes(
+            FilterCompleted,
+            {
+                {"unit_id", type text},
+                {"StatusName", type text},
+                {"Item_No", Int64.Type},
+                {"DateTime", type datetime}
+            }
+        ),
+
+    // 10. Remove blanks
+    FilterValidUnits =
+        Table.SelectRows(
+            CleanTypes,
+            each [unit_id] <> null and Text.Trim([unit_id]) <> ""
+        ),
+
+    FilterValidStatusId =
+        Table.SelectRows(
+            FilterValidUnits,
+            each [status_id] <> null
+        ),
+
+    // 11. Sort (optional, for readability)
+    SortedRows =
+        Table.Sort(
+            FilterValidStatusId,
+            {
+                {"unit_id", Order.Descending},
+                {"DateTime", Order.Descending}
+            }
+        )
+
+in
+    SortedRows

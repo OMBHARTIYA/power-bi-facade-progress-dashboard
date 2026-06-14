@@ -1,0 +1,151 @@
+let
+    StartUnix =
+        Number.ToText(
+            Number.Round(
+                Duration.TotalSeconds(
+                    RangeStart - #datetime(1970,1,1,0,0,0)
+                ) * 1000
+            )
+        ),
+
+    EndUnix =
+        Number.ToText(
+            Number.Round(
+                Duration.TotalSeconds(
+                    RangeEnd - #datetime(1970,1,1,0,0,0)
+                ) * 1000
+            )    
+        ),
+
+    BaseUrl = XanoBaseUrl & "/units",
+
+    GetPage = (Page as number) =>
+        let
+            Source =
+                Json.Document(
+                    Web.Contents(
+                        BaseUrl,
+                        [
+                            Query = [
+                                projects_id = ProjectID,
+                                startDate = StartUnix,
+                                endDate = EndUnix,
+                                curPage = Text.From(Page),
+                                perPage = "2000",
+                                construction_type =ConstructionType
+                            ]
+                        ]
+                    )
+                ),
+
+            Items =
+                if Record.HasFields(Source,"items")
+                then Source[items]
+                else {}
+        in
+            Items,
+
+
+    Pages =
+        List.Generate(
+            ()=> [Page=1, Data=GetPage(1)],
+            each List.Count([Data]) > 0,
+            each [Page=[Page]+1, Data=GetPage([Page])],
+            each [Data]
+        ),
+
+    Combined = List.Combine(Pages),
+    Buffered = List.Buffer(Combined),
+    ToTable = Table.FromList(Buffered, Splitter.SplitByNothing(), {"Column1"}),
+
+    Expanded =
+        Table.ExpandRecordColumn(
+            ToTable,
+            "Column1",
+            {
+                "id",
+                "project_stage_id",
+                "block_id",
+                "name",
+                "foreman_id",
+                "level",
+                "order_on_pallette",
+                "pallete",
+                "production_order",
+                "revit_guid",
+                "storage_zone",
+                "construction_type",
+                "created_at",
+                "updated_at",
+                "elevation",
+                "project_id",
+                "bom_id",
+                "filling",
+                "_unitsstagename",
+                "_unitbom"
+            }
+        ),
+
+    SafeStage =
+        Table.TransformColumns(
+            Expanded,
+            {{"_unitsstagename", each if Value.Is(_, type record) then _ else null}}
+        ),
+
+    ExpandedStage =
+        Table.ExpandRecordColumn(
+            SafeStage,
+            "_unitsstagename",
+            {"name"},
+            {"Stage"}
+        ),
+
+    SafeBOM =
+        Table.TransformColumns(
+            ExpandedStage,
+            {{"_unitbom", each if Value.Is(_, type record) then _ else null}}
+        ),
+
+    ExpandedBOM =
+        Table.ExpandRecordColumn(
+            SafeBOM,
+            "_unitbom",
+            {"id","number","description"},
+            {"bom_ref_id","bom_number","bom_description"}
+        ),
+
+    // Your original conversion logic — unchanged
+AddedUpdatedDateTime =
+    Table.AddColumn(
+        ExpandedBOM,
+        "UpdatedDateTime",
+        each
+            if [updated_at] <> null and Value.Is([updated_at], type number)
+            then
+                DateTimeZone.ToLocal(
+                    #datetimezone(1970,1,1,0,0,0,0,0)
+                    + #duration(0,0,0,[updated_at] / 1000)
+                )
+            else null,
+        type datetimezone
+    ),
+    #"Renamed Columns" =
+        Table.RenameColumns(AddedUpdatedDateTime,{{"id", "unit_id"}}),
+
+
+    /***********************************************************
+    * FINAL DEDUPE STEP (ADDED)
+    * Keep ONLY the latest UpdatedDateTime per unit_id
+    ***********************************************************/
+    Sorted =
+        Table.Sort(
+            #"Renamed Columns",
+            {{"unit_id", Order.Ascending}, {"UpdatedDateTime", Order.Descending}}
+        ),
+
+    FinalDedupe =
+        Table.Distinct(Sorted, {"unit_id"})
+
+
+in
+    FinalDedupe

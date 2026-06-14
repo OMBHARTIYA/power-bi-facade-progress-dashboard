@@ -1,0 +1,25 @@
+Dynamic project Title = 
+VAR ProjectName =
+    CALCULATE(
+        SELECTEDVALUE('projects?'[items.name]),
+        FILTER(
+            'projects?',
+            'projects?'[items.id] IN VALUES(Units[project_id])
+        )
+    )
+
+VAR PageFilterValue =
+    SELECTEDVALUE(Units[construction_type])
+
+RETURN
+IF(
+    ISBLANK(ProjectName),
+    BLANK(),
+    ProjectName
+        & IF(
+            NOT ISBLANK(PageFilterValue),
+            " - " & PageFilterValue,
+            ""
+        )
+        & " OVERVIEW"
+)

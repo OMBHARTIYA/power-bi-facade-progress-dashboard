@@ -1,0 +1,124 @@
+let
+
+StartUnix =
+    Number.ToText(
+        Number.Round(
+            Duration.TotalSeconds(
+                RangeStart - #datetime(1970,1,1,0,0,0)
+            ) * 1000
+        )
+    ),
+
+EndUnix =
+    Number.ToText(
+        Number.Round(
+            Duration.TotalSeconds(
+                RangeEnd - #datetime(1970,1,1,0,0,0)
+            ) * 1000
+        )
+    ),
+
+BaseUrl = XanoBaseUrl & "/unit_statuses",
+
+GetPage = (Page as number) =>
+    let
+        Source =
+            Json.Document(
+                Web.Contents(
+                    BaseUrl,
+                    [
+                        Query = [
+                            projects_id = ProjectID,
+                            startDate = StartUnix,
+                            endDate = EndUnix,
+                            curPage = Text.From(Page),
+                            perPage = "2000",
+                            construction_type = ConstructionType_status
+                        ]
+                    ]
+                )
+            ),
+
+        Items =
+            if Record.HasFields(Source,"items")
+            then Source[items]
+            else {}
+
+    in
+        Items,
+
+
+Pages =
+    List.Generate(
+        ()=> [Page=1, Data=GetPage(1)],
+        each List.Count([Data]) > 0,
+        each [Page=[Page]+1, Data=GetPage([Page])],
+        each [Data]
+    ),
+
+Combined =
+    List.Combine(Pages),
+
+BufferedList =
+    List.Buffer(Combined),
+
+ToTable =
+    Table.FromList(BufferedList, Splitter.SplitByNothing(), {"Column1"}),
+
+BufferedTable =
+    Table.Buffer(ToTable),
+
+Expanded =
+    Table.ExpandRecordColumn(
+        BufferedTable,
+        "Column1",
+        {
+            "id",
+            "unit_id",
+            "unit_statuses_type_id",
+            "user_id",
+            "is_done",
+            "date",
+            "created_at",
+            "updated_at",
+            "_statusType"
+        }
+    ),
+
+SafeStatusType =
+    Table.TransformColumns(
+        Expanded,
+        {{"_statusType", each if Value.Is(_, type record) then _ else null}}
+    ),
+
+ExpandedStatusType =
+    Table.ExpandRecordColumn(
+        SafeStatusType,
+        "_statusType",
+        {"id","name","item_no"},
+        {"StatusTypeID","StatusName","Item_No"}
+    ),
+
+AddedDateTime =
+    Table.AddColumn(
+        ExpandedStatusType,
+        "DateTime",
+        each
+            if [updated_at] <> null and Value.Is([updated_at], type number)
+            then
+                DateTimeZone.RemoveZone(
+                    DateTimeZone.ToLocal(
+                        #datetimezone(1970,1,1,0,0,0,0,0)
+                        + #duration(0,0,0,[updated_at] / 1000)
+                    )
+                )
+            else null,
+        type datetime
+    ),
+
+SelectedColumns =
+    Table.SelectColumns(AddedDateTime,{"id", "unit_id", "unit_statuses_type_id", "user_id", "is_done", "date", "created_at", "updated_at", "StatusTypeID", "StatusName", "Item_No", "DateTime"}),
+    #"Filtered Rows" = Table.SelectRows(SelectedColumns, each ([is_done] = true)),
+    #"Changed Type" = Table.TransformColumnTypes(#"Filtered Rows",{{"StatusName", type text}, {"Item_No", Int64.Type}, {"DateTime", type datetime}})
+in
+    #"Changed Type"

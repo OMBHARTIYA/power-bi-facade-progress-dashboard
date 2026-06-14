@@ -1,0 +1,154 @@
+let
+    // 1. Load data from Xano API
+    Source = Json.Document(
+        Web.Contents("https://xvdw-waaf-yi3a.p7.xano.io/api:vGDwZm0o:Dynamo_jsz/units?projects_id=e64556a7-2048-463a-bf31-23ae1fa88ff9")
+    ),
+
+    // 2. Convert JSON list into table
+    ConvertedToTable = Table.FromList(Source, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+
+    // 3. Expand all main unit fields
+    Expanded_Column1 = Table.ExpandRecordColumn(
+        ConvertedToTable,
+        "Column1",
+        {
+            "id","project_stage_id","block_id","name","foreman_id","level",
+            "order_on_pallette","pallete","production_order","revit_guid",
+            "storage_zone","construction_type","elevation","project_id",
+            "bom_id","filling","qr_code_image","_unitsstatus","_unitsstagename","_unitbom"
+        },
+        {
+            "id","project_stage_id","block_id","name","foreman_id","level",
+            "order_on_pallette","pallete","production_order","revit_guid",
+            "storage_zone","construction_type","elevation","project_id",
+            "bom_id","filling","qr_code_image","_unitsstatus","_unitsstagename","_unitbom"
+        }
+    ),
+
+    // 4. Expand Stage name
+    Expanded_StageName = Table.ExpandRecordColumn(Expanded_Column1, "_unitsstagename", {"name"}, {"Stage"}),
+
+    // 5. Keep valid GUIDs + deduplicate units
+    FilteredRows = Table.SelectRows(Expanded_StageName, each [revit_guid] <> null and Text.Trim(Text.From([revit_guid])) <> ""),
+    RemovedDuplicates = Table.Distinct(FilteredRows, {"revit_guid"}),
+
+    // 6. Expand statuses
+    ExpandedStatusList = Table.ExpandListColumn(RemovedDuplicates, "_unitsstatus"),
+
+    ExpandedStatusRecord = Table.ExpandRecordColumn(
+        ExpandedStatusList,
+        "_unitsstatus",
+        {"unit_id", "is_done", "date", "_unitstatuses"},
+        {"unit_id", "is_done", "date", "_unitstatuses"}
+    ),
+
+    ExpandedStatusDetails = Table.ExpandRecordColumn(
+        ExpandedStatusRecord,
+        "_unitstatuses",
+        {"name","item_no"},
+        {"StatusName","Item_No"}
+    ),
+
+    // 7. Remove blanks
+    RemovedBlankStatuses = Table.SelectRows(
+        ExpandedStatusDetails,
+        each [StatusName] <> null and Text.Trim([StatusName]) <> ""
+    ),
+
+    // 8. Make SafeDate numeric (Unix ms) and convert to real datetime + date
+    AddedSafeDate = Table.AddColumn(
+        RemovedBlankStatuses,
+        "SafeDate",
+        each if Value.Is([date], type number) then [date] else null,
+        type number
+    ),
+
+    AddedDateTime = Table.AddColumn(
+        AddedSafeDate,
+        "DateTime",
+        each if [SafeDate] <> null
+            then #datetime(1970,1,1,0,0,0) + #duration(0,0,0, Number.From([SafeDate]) / 1000)
+            else null,
+        type datetime
+    ),
+
+    // ✅ This is the column you will use in slicers (Between will appear)
+    AddedDate = Table.AddColumn(
+        AddedDateTime,
+        "Date",
+        each if [DateTime] <> null then Date.From([DateTime]) else null,
+        type date
+    ),
+
+    // 9. Keep only completed statuses
+    FilteredDoneOnly = Table.SelectRows(AddedDate, each [is_done] = true),
+
+    // 10. Add StageOrder (same mapping)
+    AddedStageOrder = Table.AddColumn(
+        FilteredDoneOnly,
+        "StageOrder",
+        each
+            if [StatusName] = "Prepared" then 1
+            else if [StatusName] = "Assembled" then 2
+            else if [StatusName] = "Glazed" then 3
+            else if [StatusName] = "Packed" then 4
+            else if [StatusName] = "Produced" then 5
+            else if [StatusName] = "In Stock" then 6
+            else if [StatusName] = "Out Stock" then 7
+            else if [StatusName] = "Delivered" then 8
+            else if [StatusName] = "Installed" then 9
+            else if [StatusName] = "Accepted" then 10
+            else null,
+        Int64.Type
+    ),
+
+    // 11. Latest completed stage per unit (StageOrder desc, tie-break by DateTime desc)
+    GroupedLatest = Table.Group(
+        AddedStageOrder,
+        {"id"},
+        {
+            {
+                "LatestRecord",
+                each
+                    let
+                        Sorted = Table.Sort(_, {{"StageOrder", Order.Descending}, {"DateTime", Order.Descending}})
+                    in
+                        if Table.RowCount(Sorted) > 0 then Sorted{0} else null,
+                type record
+            }
+        }
+    ),
+
+    // 12. Expand latest record fields (THIS is the "current status" row per unit)
+    Expanded_Latest = Table.ExpandRecordColumn(
+        GroupedLatest,
+        "LatestRecord",
+        {"StatusName","Item_No","StageOrder","Date","DateTime","SafeDate"},
+        {"Status_Clean","Item_No","StageOrder","Date","DateTime","SafeDate"}
+    ),
+
+    // 13. Merge back with unit master (so units with no done status become Not started)
+    MergedBack = Table.NestedJoin(
+        RemovedDuplicates, {"id"},
+        Expanded_Latest, {"id"},
+        "StatusMerge",
+        JoinKind.LeftOuter
+    ),
+
+    ExpandedFinal = Table.ExpandTableColumn(
+        MergedBack,
+        "StatusMerge",
+        {"Status_Clean","Item_No","StageOrder","Date","DateTime","SafeDate"},
+        {"Status_Clean","Item_No","StageOrder","Date","DateTime","SafeDate"}
+    ),
+
+    // 14. Replace null current status with Not started
+    CleanStatus = Table.ReplaceValue(
+        ExpandedFinal,
+        each [Status_Clean],
+        each if [Status_Clean] = null or Text.Trim(Text.From([Status_Clean])) = "" then "Not started" else [Status_Clean],
+        Replacer.ReplaceValue,
+        {"Status_Clean"}
+    )
+in
+    CleanStatus
