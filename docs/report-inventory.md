@@ -51,9 +51,13 @@ Detected page tabs:
 
 ## Screenshot Note
 
-These `.pbix` files contain report structure, visuals, and embedded resources, but they do not provide clean page screenshots that can be reliably extracted as portfolio images. For exact page screenshots, the recommended workflow is:
+The repository now includes manually captured screenshots for:
 
-1. open the `.pbix` file in Power BI Desktop
-2. navigate to each report page
-3. export or capture the page image manually
-4. save it into `screenshots/` with project-specific names
+- Upper One overview
+- Quorum B overview
+- Quorum B issues overview
+- Bridgend College overview
+- Bridgend College current issues
+- Bridgend College solved issues
+
+These are stored under `screenshots/` and are suitable for portfolio presentation.

@@ -84,10 +84,26 @@ docs/
 - project-level KPI summaries
 - reusable report structure across multiple projects
 
+## Project Screenshots
+
+### Upper One
+
+![Upper One Overview](screenshots/upper-one-overview.png)
+
+### Quorum B
+
+![Quorum B Overview](screenshots/quorum-b-overview.png)
+
+![Quorum B Issues Overview](screenshots/quorum-b-issues-overview.png)
+
+### Bridgend College
+
+![Bridgend College Overview](screenshots/bridgend-college-overview.png)
+
+![Bridgend College Current Issues](screenshots/bridgend-college-current-issues.png)
+
+![Bridgend College Solved Issues](screenshots/bridgend-college-solved-issues.png)
+
 ## Outcome
 
 This project shows how to build reusable Power BI dashboards that turn API-driven construction data into stakeholder-friendly progress reporting with structured transformation logic, incremental refresh support, and practical reporting automation.
-
-## Notes On Screenshots
-
-The repository includes representative screenshots for the dashboard style and reporting layout. True page screenshots for each `.pbix` file are best exported directly from Power BI Desktop, because `.pbix` files do not reliably include normal page preview images that can be extracted as portfolio screenshots.
